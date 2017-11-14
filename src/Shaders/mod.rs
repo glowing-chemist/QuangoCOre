@@ -6,7 +6,7 @@ use std::fs::File;
 use std::io::prelude::*;
 
 use std::os::raw::{c_char, c_int};
-use std::mem::transmute;
+use std::ptr;
 
 trait shader {
     fn compile(&self) -> ShaderCompile;
@@ -22,16 +22,24 @@ pub struct VertexShader {
 
 
 impl VertexShader {
+
     pub fn new(path : String) -> VertexShader {
         let ID = unsafe {gl::CreateShader(gl::VERTEX_SHADER)};
         
-        let mut vertexFile = File::open(path).expect("file not found");
+        let mut vertexFile = File::open(path).expect("vertex source file not found");
 
         let mut contents = String::new();
         vertexFile.read_to_string(&mut contents)
-            .expect("something went wrong reading the file");
+            .expect("failed to read vertex shader Source");
 
         VertexShader{m_ID : ID, m_Source : contents}
+
+    }
+
+
+
+    fn Get_ID(&self) -> u32 {
+        self.m_ID
     }
 }
 
@@ -44,21 +52,92 @@ impl shader for VertexShader {
         let SourceLenght  = self.m_Source.len() as i32;
         let SourceLenghtPointer : *const i32 = &SourceLenght;
 
-        let SourcePointer = self.m_Source.as_ptr();
-        let SourcePointerToPointer : *const *const u8 = &SourcePointer;
-
-        unsafe {
-            gl::ShaderSource(self.m_ID, 1, SourcePointerToPointer as *const *const c_char
+        let SourcePToP = &(self.m_Source.as_ptr() as *const i8) as *const *const i8;
+        let compileStatus : ShaderCompile = unsafe {
+            gl::ShaderSource(self.m_ID, 1, SourcePToP
                             , SourceLenghtPointer);
-        }
-        ShaderCompile::Success
+        
+            let mut success : u32 = 0;
+            gl::GetShaderiv(self.m_ID, gl::COMPILE_STATUS, *&mut success as *mut c_int);
+            if success == 0 {
+                ShaderCompile::Success
+            } else {
+                let mut logLenght : u32 = 0;
+                gl::GetShaderiv(self.m_ID, gl::INFO_LOG_LENGTH, *&mut logLenght as *mut c_int);
+
+                let bufferArray : Vec<u8> = Vec::with_capacity(logLenght as usize);
+
+                gl::GetShaderInfoLog(self.m_ID, logLenght as c_int, ptr::null_mut(), bufferArray.as_ptr() as *mut c_char);
+
+                ShaderCompile::Failed(String::from_utf8(bufferArray).unwrap())
+            }
+        };
+
+
+        compileStatus
     }
 }
 
 
 
 pub struct FragmentShader {
+    m_ID : u32,
+    m_Source : String
+}
 
+
+
+impl FragmentShader {
+
+    fn new(path : String) -> FragmentShader {
+                let ID = unsafe {gl::CreateShader(gl::VERTEX_SHADER)};
+        
+        let mut FragmentFile = File::open(path).expect("fragment source file not found");
+
+        let mut contents = String::new();
+        FragmentFile.read_to_string(&mut contents)
+            .expect("Failed to read Fragment shader source");
+
+        FragmentShader{m_ID : ID, m_Source : contents}
+    }
+
+
+    fn Get_ID(&self) -> u32 {
+        self.m_ID
+    }
+}
+
+
+
+impl shader for FragmentShader {
+    fn compile(&self) -> ShaderCompile {
+                let SourceLenght  = self.m_Source.len() as i32;
+        let SourceLenghtPointer : *const i32 = &SourceLenght;
+
+        let SourcePToP = &(self.m_Source.as_ptr() as *const i8) as *const *const i8;
+        let compileStatus : ShaderCompile = unsafe {
+            gl::ShaderSource(self.m_ID, 1, SourcePToP
+                            , SourceLenghtPointer);
+        
+            let mut success : u32 = 0;
+            gl::GetShaderiv(self.m_ID, gl::COMPILE_STATUS, *&mut success as *mut c_int);
+            if success == 0 {
+                ShaderCompile::Success
+            } else {
+                let mut logLenght : u32 = 0;
+                gl::GetShaderiv(self.m_ID, gl::INFO_LOG_LENGTH, *&mut logLenght as *mut c_int);
+
+                let bufferArray : Vec<u8> = Vec::with_capacity(logLenght as usize);
+
+                gl::GetShaderInfoLog(self.m_ID, logLenght as c_int, ptr::null_mut(), bufferArray.as_ptr() as *mut c_char);
+
+                ShaderCompile::Failed(String::from_utf8(bufferArray).unwrap())
+            }
+        };
+
+
+        compileStatus
+    }
 }
 
 
