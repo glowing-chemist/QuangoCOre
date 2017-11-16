@@ -80,6 +80,14 @@ impl shader for VertexShader {
 
 
 
+impl Drop for VertexShader {
+    fn drop(&mut self) {
+        unsafe{gl::DeleteShader(self.m_ID)}
+    }
+}
+
+
+
 pub struct FragmentShader {
     m_ID : u32,
     m_Source : String
@@ -110,6 +118,7 @@ impl FragmentShader {
 
 
 impl shader for FragmentShader {
+
     fn compile(&self) -> ShaderCompile {
                 let SourceLenght  = self.m_Source.len() as i32;
         let SourceLenghtPointer : *const i32 = &SourceLenght;
@@ -137,6 +146,14 @@ impl shader for FragmentShader {
 
 
         compileStatus
+    }
+}
+
+
+
+impl Drop for FragmentShader {
+    fn drop(&mut self) {
+        unsafe{gl::DeleteShader(self.m_ID)}
     }
 }
 
