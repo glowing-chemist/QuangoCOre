@@ -1,7 +1,8 @@
 [package]
 name = "QuangoCore"
-version = "0.1.0"
+version = "0.0.1"
 authors = ["olie <olie.smit0@gmail.com>"]
 
 [dependencies]
 gl = "0.6.3"
+stb_image = "0.2.2"
