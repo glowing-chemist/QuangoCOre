@@ -5,11 +5,12 @@ use Errors::{ShaderCompile, ShaderLink};
 use std::fs::File;
 use std::io::prelude::*;
 
-use std::os::raw::{c_char, c_int};
+use std::os::raw::{c_char, c_int, c_uint};
 use std::ptr;
 
 trait shader {
     fn compile(&self) -> ShaderCompile;
+    fn link() -> ShaderLink;
 }
 
 
@@ -159,12 +160,10 @@ impl Drop for FragmentShader {
 
 
 
-pub struct ShaderProgram {
-    m_ID : u32
-}
+pub struct ShaderProgram;
 
 impl ShaderProgram {
-    fn new(path : String) -> ShaderProgram {
+    fn new(VertexShader: uint, FragmentShader: uint) -> ShaderProgram {
         let ID = unsafe{gl::CreateProgram()};
         ShaderProgram{m_ID : ID}
     }
@@ -173,8 +172,8 @@ impl ShaderProgram {
     }
 }
 
-impl linker for ShaderProgram {
-    fn compile(&mut self) {
+impl Link for ShaderProgram {
+    fn link() {
        unsafe{gl::AttachShader(self.m_ID, gl::VERTEX_SHADER)}; 
        unsafe{gl::AttachShader(self.m_ID, gl::FRAGMENT_SHADER)};
        unsafe{gl::LinkProgram(self.m_ID)};
@@ -186,7 +185,7 @@ impl linker for ShaderProgram {
                let mut logLength : u32 = 0;
                gl::GetProgramInfoLog(self.m_ID, logLength as c_uint, ptr::null_mut(), bufferArray.as_ptr() as *mut c_char);
                let bufferArray : Vec<u8> = Vec::with_capacity(logLength as usize);
-               ShaderCompile::Failed(String::from_utf8(bufferArray).unwrap())
+               ShaderLink::Failed(String::from_utf8(bufferArray).unwrap())
            }
        };
        compileStatus
