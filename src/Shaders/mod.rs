@@ -165,10 +165,10 @@ pub struct ShaderProgram;
 impl ShaderProgram {
     fn new(VertexShader: uint, FragmentShader: uint) -> ShaderProgram {
         let ID = unsafe{gl::CreateProgram()};
-        ShaderProgram{m_ID : ID}
+        //let ShaderProgram = ShaderProgram{}
     }
     fn Get_ID(&self) -> u32 {
-        self.m_ID
+        self.ID
     }
 }
 
