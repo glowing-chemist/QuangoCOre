@@ -2,9 +2,9 @@ language: rust
 sudo: false
 
 rust:
-        -stable
-        -beta
-        -nightly
+        - stable
+        - beta
+        - nightly
 
 
 script:
