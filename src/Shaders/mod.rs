@@ -5,11 +5,12 @@ use Errors::{ShaderCompile, ShaderLink};
 use std::fs::File;
 use std::io::prelude::*;
 
-use std::os::raw::{c_char, c_int};
+use std::os::raw::{c_char, c_int, c_uint};
 use std::ptr;
 
 trait shader {
     fn compile(&self) -> ShaderCompile;
+    fn link() -> ShaderLink;
 }
 
 
@@ -49,8 +50,8 @@ impl shader for VertexShader {
 
     fn compile(&self) -> ShaderCompile {
 
-        let SourceLenght  = self.m_Source.len() as i32;
-        let SourceLenghtPointer : *const i32 = &SourceLenght;
+        let SourceLength  = self.m_Source.len() as i32;
+        let SourceLengthPointer : *const i32 = &SourceLenght;
 
         let SourcePToP = &(self.m_Source.as_ptr() as *const i8) as *const *const i8;
         let compileStatus : ShaderCompile = unsafe {
@@ -62,12 +63,12 @@ impl shader for VertexShader {
             if success == 0 {
                 ShaderCompile::Success
             } else {
-                let mut logLenght : u32 = 0;
-                gl::GetShaderiv(self.m_ID, gl::INFO_LOG_LENGTH, *&mut logLenght as *mut c_int);
+                let mut logLength : u32 = 0;
+                gl::GetShaderiv(self.m_ID, gl::INFO_LOG_LENGTH, *&mut logLength as *mut c_int);
 
-                let bufferArray : Vec<u8> = Vec::with_capacity(logLenght as usize);
+                let bufferArray : Vec<u8> = Vec::with_capacity(logLength as usize);
 
-                gl::GetShaderInfoLog(self.m_ID, logLenght as c_int, ptr::null_mut(), bufferArray.as_ptr() as *mut c_char);
+                gl::GetShaderInfoLog(self.m_ID, logLength as c_int, ptr::null_mut(), bufferArray.as_ptr() as *mut c_char);
 
                 ShaderCompile::Failed(String::from_utf8(bufferArray).unwrap())
             }
@@ -120,8 +121,8 @@ impl FragmentShader {
 impl shader for FragmentShader {
 
     fn compile(&self) -> ShaderCompile {
-                let SourceLenght  = self.m_Source.len() as i32;
-        let SourceLenghtPointer : *const i32 = &SourceLenght;
+                let SourceLength  = self.m_Source.len() as i32;
+        let SourceLengthPointer : *const i32 = &SourceLength;
 
         let SourcePToP = &(self.m_Source.as_ptr() as *const i8) as *const *const i8;
         let compileStatus : ShaderCompile = unsafe {
@@ -133,12 +134,12 @@ impl shader for FragmentShader {
             if success == 0 {
                 ShaderCompile::Success
             } else {
-                let mut logLenght : u32 = 0;
-                gl::GetShaderiv(self.m_ID, gl::INFO_LOG_LENGTH, *&mut logLenght as *mut c_int);
+                let mut logLength : u32 = 0;
+                gl::GetShaderiv(self.m_ID, gl::INFO_LOG_LENGTH, *&mut logLength as *mut c_int);
 
-                let bufferArray : Vec<u8> = Vec::with_capacity(logLenght as usize);
+                let bufferArray : Vec<u8> = Vec::with_capacity(logLength as usize);
 
-                gl::GetShaderInfoLog(self.m_ID, logLenght as c_int, ptr::null_mut(), bufferArray.as_ptr() as *mut c_char);
+                gl::GetShaderInfoLog(self.m_ID, logLength as c_int, ptr::null_mut(), bufferArray.as_ptr() as *mut c_char);
 
                 ShaderCompile::Failed(String::from_utf8(bufferArray).unwrap())
             }
@@ -159,6 +160,39 @@ impl Drop for FragmentShader {
 
 
 
-pub struct ShaderProgram {
+pub struct ShaderProgram;
 
+impl ShaderProgram {
+    fn new(VertexShader: uint, FragmentShader: uint) -> ShaderProgram {
+        let ID = unsafe{gl::CreateProgram()};
+        //let ShaderProgram = ShaderProgram{}
+    }
+    fn Get_ID(&self) -> u32 {
+        self.ID
+    }
 }
+
+impl Link for ShaderProgram {
+    fn link() {
+       unsafe{gl::AttachShader(self.m_ID, gl::VERTEX_SHADER)}; 
+       unsafe{gl::AttachShader(self.m_ID, gl::FRAGMENT_SHADER)};
+       unsafe{gl::LinkProgram(self.m_ID)};
+       let compileStatus : ShaderCompile = unsafe {
+           gl::GetProgramiv(self.m_ID, gl::COMPILE_STATUS, *mut success as *mut c_uint);
+           if success == 0 {
+               ShaderCompile::Success
+           } else {
+               let mut logLength : u32 = 0;
+               gl::GetProgramInfoLog(self.m_ID, logLength as c_uint, ptr::null_mut(), bufferArray.as_ptr() as *mut c_char);
+               let bufferArray : Vec<u8> = Vec::with_capacity(logLength as usize);
+               ShaderLink::Failed(String::from_utf8(bufferArray).unwrap())
+           }
+       };
+       compileStatus
+    }
+}
+
+impl Drop for ShaderProgram {
+    //delete VertexShader
+    //delete FragmentShader
+} 
