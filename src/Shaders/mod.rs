@@ -6,6 +6,7 @@ use std::fs::File;
 use std::io::prelude::*;
 
 use std::os::raw::{c_char, c_int};
+use std::ffi::CString;
 use std::ptr;
 
 trait shader {
@@ -160,5 +161,54 @@ impl Drop for FragmentShader {
 
 
 pub struct ShaderProgram {
+    m_ID : u32,
+    vert : VertexShader,
+    frag : FragmentShader
+}
 
+
+
+impl ShaderProgram {
+
+    pub fn new(vertex_shader : VertexShader, fragment_shader : FragmentShader) -> ShaderProgram {
+        unimplemented!();
+    }
+
+
+
+    pub fn link(&self) -> ShaderLink {
+        unimplemented!();
+    }
+
+
+
+    pub fn setActive(&self) {
+        unimplemented!();
+    }
+
+
+
+    pub fn setUniformInt(&self, name : CString, value : u32) {
+        unimplemented!();
+    }
+
+
+
+    pub fn setUniformFloat(&self, name : CString, value : f32) {
+        unimplemented!();
+    }
+
+
+
+    pub fn setUniformBool(&self, name : CString, value : bool) {
+        unimplemented!();
+    }
+}
+
+
+
+impl Drop for ShaderProgram {
+    fn drop(&mut self) {
+        unimplemented!();
+    }
 }
