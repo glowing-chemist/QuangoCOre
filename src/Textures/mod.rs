@@ -6,19 +6,20 @@ use self::stb_image::stb_image::bindgen::{stbi_load, stbi_image_free};
 use self::gl::types::{GLenum, GLint};
 
 use std::os::raw::{c_int, c_void, c_char};
+use std::ffi::CString;
 
 
 pub struct Texture2D {
     m_ID : u32,
     m_slot : u32,
-    m_filePath : String,
+    m_filePath : CString,
 }
 
 
 
 impl Texture2D {
 
-    pub fn new(path : String) -> Texture2D {
+    pub fn new(path : CString) -> Texture2D {
         let mut height = 0;
         let mut width = 0;
         let mut channels = 0;
