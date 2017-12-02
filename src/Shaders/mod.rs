@@ -102,10 +102,10 @@ pub struct ShaderProgram {
 impl ShaderProgram {
 
     pub fn new(vertex_shader : VertexShader, fragment_shader : FragmentShader) -> ShaderProgram {
-        let ID = unsafe{gl::CreateProgram()};
+        //let ID = unsafe{gl::CreateProgram()};
         let vertex_shader = unsafe{gl::AttachShader(self.m_ID, gl::VERTEX_SHADER)};
         let fragment_shader = unsafe{gl::AttachShader(self.m_ID, gl::FRAGMENT_SHADER)};
-        ShaderProgram{m_ID : ID, vert : vertex_shader, Geom : None, frag : fragment_shader}
+        ShaderProgram{m_ID : self.m_ID, vert : vertex_shader, Geom : None, frag : fragment_shader}
     }
 
 
