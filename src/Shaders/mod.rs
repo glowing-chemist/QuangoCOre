@@ -13,7 +13,7 @@ use self::gl::types::GLenum;
 
 
 
-struct Shader {
+pub struct Shader {
     m_ID : u32,
     m_Source : String,
 }
@@ -22,22 +22,30 @@ struct Shader {
 
 impl Shader {
 
-    pub fn new(path : String, shaderType : GLenum) -> Shader {
-        let ID = unsafe {gl::CreateShader(shaderType)};
+    pub fn new_from_file(path : String, shader_type : GLenum) -> Shader {
+        let id = unsafe {gl::CreateShader(shader_type)};
         
-        let mut vertexFile = File::open(path).expect("shader source file not found");
+        let mut vertex_file = File::open(path).expect("shader source file not found");
 
         let mut contents = String::new();
-        vertexFile.read_to_string(&mut contents)
+        vertex_file.read_to_string(&mut contents)
             .expect("failed to read shader Source");
 
-        Shader{m_ID : ID, m_Source : contents}
+        Shader{m_ID : id, m_Source : contents}
 
     }
 
 
 
-        fn compile(&self) -> ShaderCompile {
+    pub fn new_from_string(shader_source : String, shader_type : GLenum) -> Shader {
+        let id = unsafe{ gl::CreateShader(shader_type) };
+
+        Shader{m_ID : id, m_Source : shader_source}
+    }
+
+
+
+    pub fn compile(&self) -> ShaderCompile {
 
         let SourceLenght  = self.m_Source.len() as i32;
         let SourceLenghtPointer : *const i32 = &SourceLenght;
@@ -69,7 +77,7 @@ impl Shader {
 
 
 
-    fn Get_ID(&self) -> u32 {
+    pub fn Get_ID(&self) -> u32 {
         self.m_ID
     }
 }
