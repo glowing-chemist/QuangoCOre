@@ -110,25 +110,32 @@ pub struct ShaderProgram {
 impl ShaderProgram {
 
     pub fn new(vertex_shader : VertexShader, fragment_shader : FragmentShader) -> ShaderProgram {
-        unimplemented!();
+        let ID = unsafe{gl::CreateProgram()};
+        let vertex_shader = unsafe{gl::AttachShader(self.m_ID, gl::vertex_shader.Get_ID)};
+        let fragment_shader = unsafe{gl::AttachShader(self.m_ID, gl::fragment_shader.Get_ID)};
+        ShaderProgram{m_ID : self.m_ID, vert : vertex_shader, Geom : None, frag : fragment_shader}
     }
 
 
 
     pub fn new_with_geometry(vertex_shader : VertexShader, geometry_shader : GeometryShader, fragment_shader : FragmentShader) -> ShaderProgram {
-        unimplemented!();
+        let ID = unsafe{gl::CreateProgram()};
+        let vertex_shader = unsafe{gl::AttachShader(self.m_ID, gl::vertex_shader.Get_ID)};
+        let geometry_shader = unsafe{gl::AttachShader(self.m_ID, gl::geometry_shader.Get_ID)};
+        let fragment_shader = unsafe{gl::AttachShader(self.m_ID, gl::fragment_shader.Get_ID)};
+        ShaderProgram{m_ID : ID, vert : vertex_shader, Geom : geometry_shader, frag : fragment_shader}
     }
 
 
 
     pub fn link(&self) -> ShaderLink {
-        unimplemented!();
+        unsafe{gl::LinkProgram(self.m_ID)};
     }
 
 
 
     pub fn setActive(&self) {
-        unimplemented!();
+        unsafe{gl::UseProgram(self.m_ID)};
     }
 
 
