@@ -9,7 +9,7 @@ use std::os::raw::{c_char, c_int};
 use std::ffi::CString;
 use std::ptr;
 
-use self::gl::types::GLenum;
+use self::gl::types::{GLenum, GLint, GLchar};
 
 
 
@@ -47,30 +47,29 @@ impl Shader {
 
     pub fn compile(&self) -> ShaderCompile {
 
-        let SourceLenght  = self.m_Source.len() as i32;
-        let SourceLenghtPointer : *const i32 = &SourceLenght;
+        let shader_source = CString::new(self.m_Source.as_bytes()).unwrap();
 
-        let SourcePToP = &(self.m_Source.as_ptr() as *const i8) as *const *const i8;
-        let compileStatus : ShaderCompile = unsafe {
-            gl::ShaderSource(self.m_ID, 1, SourcePToP
-                            , SourceLenghtPointer);
+        let compileStatus = unsafe {
+            gl::ShaderSource(self.m_ID, 1, &shader_source.as_ptr()
+                            , ptr::null());
         
-            let mut success : u32 = 0;
-            gl::GetShaderiv(self.m_ID, gl::COMPILE_STATUS, *&mut success as *mut c_int);
-            if success == 0 {
+            gl::CompileShader(self.m_ID);
+
+            let mut success : GLint = 0;
+            gl::GetShaderiv(self.m_ID, gl::COMPILE_STATUS, &mut success);
+            if success == gl::TRUE as GLint {
                 ShaderCompile::Success
             } else {
-                let mut logLenght : u32 = 0;
-                gl::GetShaderiv(self.m_ID, gl::INFO_LOG_LENGTH, *&mut logLenght as *mut c_int);
+                let mut logLenght : GLint = 0;
+                gl::GetShaderiv(self.m_ID, gl::INFO_LOG_LENGTH, &mut logLenght);
 
-                let bufferArray : Vec<u8> = Vec::with_capacity(logLenght as usize);
+                let mut log_buffer = Vec::with_capacity(logLenght as usize);
 
-                gl::GetShaderInfoLog(self.m_ID, logLenght as c_int, ptr::null_mut(), bufferArray.as_ptr() as *mut c_char);
+                gl::GetShaderInfoLog(self.m_ID, logLenght, ptr::null_mut(), log_buffer.as_mut_ptr() as *mut GLchar);
 
-                ShaderCompile::Failed(String::from_utf8(bufferArray).unwrap())
+                ShaderCompile::Failed(String::from_utf8(log_buffer).unwrap())
             }
         };
-
 
         compileStatus
     }

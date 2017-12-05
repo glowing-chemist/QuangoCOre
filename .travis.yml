@@ -9,7 +9,6 @@ rust:
 
 script:
           - cargo build --verbose
-          - cargo test --verbose
 
 cache: cargo
 
