@@ -1,0 +1,39 @@
+TARGET = Some("x86_64-apple-darwin")
+OPT_LEVEL = Some("0")
+TARGET = Some("x86_64-apple-darwin")
+HOST = Some("x86_64-apple-darwin")
+TARGET = Some("x86_64-apple-darwin")
+TARGET = Some("x86_64-apple-darwin")
+HOST = Some("x86_64-apple-darwin")
+CC_x86_64-apple-darwin = None
+CC_x86_64_apple_darwin = None
+HOST_CC = None
+CC = None
+HOST = Some("x86_64-apple-darwin")
+TARGET = Some("x86_64-apple-darwin")
+HOST = Some("x86_64-apple-darwin")
+CFLAGS_x86_64-apple-darwin = None
+CFLAGS_x86_64_apple_darwin = None
+HOST_CFLAGS = None
+CFLAGS = None
+DEBUG = Some("true")
+running: "cc" "-O0" "-ffunction-sections" "-fdata-sections" "-fPIC" "-g" "-m64" "-Wall" "-Wextra" "-o" "/Users/Home/Documents/Portfolio/Rust_work/QuangoCore/target/debug/build/stb_image-4bbb90b2a341c8e1/out/src/stb_image.o" "-c" "src/stb_image.c"
+cargo:warning=src/stb_image.c:5655:84: warning: unused parameter 'req_comp' [-Wunused-parameter]
+cargo:warning=static stbi_uc *stbi__gif_load_next(stbi__context *s, stbi__gif *g, int *comp, int req_comp)
+cargo:warning=                                                                                   ^
+cargo:warning=1 warning generated.
+exit code: 0
+TARGET = Some("x86_64-apple-darwin")
+TARGET = Some("x86_64-apple-darwin")
+HOST = Some("x86_64-apple-darwin")
+AR_x86_64-apple-darwin = None
+AR_x86_64_apple_darwin = None
+HOST_AR = None
+AR = None
+TARGET = Some("x86_64-apple-darwin")
+TARGET = Some("x86_64-apple-darwin")
+running: "ar" "crs" "/Users/Home/Documents/Portfolio/Rust_work/QuangoCore/target/debug/build/stb_image-4bbb90b2a341c8e1/out/libstb_image.a" "/Users/Home/Documents/Portfolio/Rust_work/QuangoCore/target/debug/build/stb_image-4bbb90b2a341c8e1/out/src/stb_image.o"
+exit code: 0
+TARGET = Some("x86_64-apple-darwin")
+cargo:rustc-link-lib=static=stb_image
+cargo:rustc-link-search=native=/Users/Home/Documents/Portfolio/Rust_work/QuangoCore/target/debug/build/stb_image-4bbb90b2a341c8e1/out
