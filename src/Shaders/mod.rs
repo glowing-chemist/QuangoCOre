@@ -147,7 +147,7 @@ impl ShaderProgram {
 
                 let mut log_buffer = Vec::with_capacity(log_length as usize);
 
-                gl::GetShaderInfoLog(self.m_ID, log_length, ptr::null_mut(), log_buffer.as_mut_ptr() as *mut GLchar);
+                gl::GetProgramInfoLog(self.m_ID, log_length, ptr::null_mut(), log_buffer.as_mut_ptr() as *mut GLchar);
 
                 ShaderLink::Failed(String::from_utf8(log_buffer).unwrap())
             }
