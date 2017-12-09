@@ -100,7 +100,7 @@ pub type FragmentShader = Shader;
 pub struct ShaderProgram {
     m_ID : u32,
     vert : VertexShader,
-    Geom : Option<GeometryShader>,
+    geom : Option<GeometryShader>,
     frag : FragmentShader
 }
 
@@ -109,43 +109,75 @@ pub struct ShaderProgram {
 impl ShaderProgram {
 
     pub fn new(vertex_shader : VertexShader, fragment_shader : FragmentShader) -> ShaderProgram {
-        unimplemented!();
+        let id = unsafe{ gl::CreateProgram() };
+        unsafe{
+            gl::AttachShader(id, vertex_shader.Get_ID());
+            gl::AttachShader(id, fragment_shader.Get_ID());
+        }
+
+        ShaderProgram{m_ID : id, vert : vertex_shader, geom : None, frag : fragment_shader}
     }
 
 
 
     pub fn new_with_geometry(vertex_shader : VertexShader, geometry_shader : GeometryShader, fragment_shader : FragmentShader) -> ShaderProgram {
-        unimplemented!();
-    }
+        let id = unsafe{ gl::CreateProgram() };
+        unsafe{
+            gl::AttachShader(id, vertex_shader.Get_ID());
+            gl::AttachShader(id, geometry_shader.Get_ID());
+            gl::AttachShader(id, fragment_shader.Get_ID());
+        }
+
+        ShaderProgram{m_ID : id, vert : vertex_shader, geom : Some(geometry_shader), frag : fragment_shader}    }
 
 
 
     pub fn link(&self) -> ShaderLink {
-        unimplemented!();
+        unsafe{ gl::LinkProgram(self.m_ID); }
+
+                let link_status = unsafe {
+
+            let mut success : GLint = 0;
+            gl::GetShaderiv(self.m_ID, gl::LINK_STATUS, &mut success);
+            if success == gl::TRUE as GLint {
+                ShaderLink::Success
+            } else {
+                let mut log_length : GLint = 0;
+                gl::GetShaderiv(self.m_ID, gl::INFO_LOG_LENGTH, &mut log_length);
+
+                let mut log_buffer = Vec::with_capacity(log_length as usize);
+
+                gl::GetShaderInfoLog(self.m_ID, log_length, ptr::null_mut(), log_buffer.as_mut_ptr() as *mut GLchar);
+
+                ShaderLink::Failed(String::from_utf8(log_buffer).unwrap())
+            }
+        };
+
+        link_status
     }
 
 
 
-    pub fn setActive(&self) {
-        unimplemented!();
+    pub fn set_active(&self) {
+        unsafe{ gl::UseProgram(self.m_ID); }
     }
 
 
 
-    pub fn setUniformInt(&self, name : CString, value : u32) {
-        unimplemented!();
+    pub fn set_uniform_int(&self, name : CString, value : u32) {
+        unsafe{ gl::ProgramUniform1i(self.m_ID, gl::GetUniformLocation(self.m_ID, name.as_ptr()), value as i32); }
     }
 
 
 
-    pub fn setUniformFloat(&self, name : CString, value : f32) {
-        unimplemented!();
+    pub fn set_uniform_float(&self, name : CString, value : f32) {
+        unsafe{ gl::ProgramUniform1f(self.m_ID, gl::GetUniformLocation(self.m_ID, name.as_ptr()), value); };
     }
 
 
 
-    pub fn setUniformBool(&self, name : CString, value : bool) {
-        unimplemented!();
+    pub fn set_uniform_bool(&self, name : CString, value : bool) {
+        unsafe{ gl::ProgramUniform1i(self.m_ID, gl::GetUniformLocation(self.m_ID, name.as_ptr()), value as i32); };
     }
 }
 
@@ -153,6 +185,6 @@ impl ShaderProgram {
 
 impl Drop for ShaderProgram {
     fn drop(&mut self) {
-        unimplemented!();
+        unsafe{ gl::DeleteProgram(self.m_ID); }
     }
 }
