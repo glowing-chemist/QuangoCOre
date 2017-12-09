@@ -168,7 +168,7 @@ impl ShaderProgram {
                 ShaderLink::Success
             } else {
                 let mut log_length: GLint = 0;
-                gl::GetShaderiv(self.m_id, gl::INFO_LOG_LENGTH, &mut log_length);
+                gl::GetProgramiv(self.m_id, gl::INFO_LOG_LENGTH, &mut log_length);
 
                 let mut log_buffer = Vec::with_capacity(log_length as usize);
 
