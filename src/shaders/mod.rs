@@ -163,7 +163,7 @@ impl ShaderProgram {
         let link_status = unsafe {
 
             let mut success: GLint = 0;
-            gl::GetShaderiv(self.m_id, gl::LINK_STATUS, &mut success);
+            gl::GetProgramiv(self.m_id, gl::LINK_STATUS, &mut success);
             if success == gl::TRUE as GLint {
                 ShaderLink::Success
             } else {
