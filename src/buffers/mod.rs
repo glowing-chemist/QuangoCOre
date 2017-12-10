@@ -1,10 +1,10 @@
 extern crate gl;
 
 use std::os::raw::{c_int, c_uint, c_void, c_uchar};
-
+use self::gl::types::GLuint;
 
 pub struct ElementBufferObject {
-    m_id: u32,
+    m_id: GLuint,
 }
 
 
@@ -28,7 +28,12 @@ impl ElementBufferObject {
 
 
 
-    pub fn copy_indicies_data(buffer_size: isize, buffer: *const c_void, buffer_hint: c_uint) {
+    pub fn copy_indicies_data(
+        &self,
+        buffer_size: isize,
+        buffer: *const c_void,
+        buffer_hint: c_uint,
+    ) {
         unsafe {
             gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, buffer_size, buffer, buffer_hint);
         }
@@ -48,13 +53,25 @@ impl Drop for ElementBufferObject {
 
 
 pub struct VertexBufferObject {
-    m_id: u32,
+    m_id: GLuint,
 }
 
 
 
 impl VertexBufferObject {
+    pub fn new() -> VertexBufferObject {
+        let mut id: GLuint = 0;
+        unsafe {
+            gl::GenBuffers(1, &mut id);
+        };
+
+        VertexBufferObject { m_id: id }
+    }
+
+
+
     pub fn set_vertex_bindings(
+        &self,
         position: c_uint,
         size: c_int,
         buffer_hint: c_uint,
@@ -70,7 +87,8 @@ impl VertexBufferObject {
 
 
 
-    pub fn copy_vertex_array_aata(
+    pub fn copy_vertex_array_data(
+        &self,
         array_size: isize,
         vertex_buffer: *const c_void,
         buffer_hint: c_uint,
@@ -102,14 +120,14 @@ impl Drop for VertexBufferObject {
 
 
 pub struct VertexArrayObject {
-    m_id: u32,
+    m_id: GLuint,
 }
 
 
 
 impl VertexArrayObject {
-    fn new() -> VertexArrayObject {
-        let mut id: u32 = 0;
+    pub fn new() -> VertexArrayObject {
+        let mut id = 0;
         unsafe {
             gl::GenVertexArrays(1, &mut id);
         }
