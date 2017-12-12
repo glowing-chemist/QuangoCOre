@@ -9,3 +9,9 @@ pub enum ShaderLink {
     Failed(String),
     Success,
 }
+
+#[derive(Debug)]
+pub enum DrawStatus {
+    Failed(String),
+    Success
+}

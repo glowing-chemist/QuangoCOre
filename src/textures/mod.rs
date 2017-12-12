@@ -6,12 +6,13 @@ use self::stb_image::stb_image::bindgen::{stbi_load, stbi_image_free};
 use self::gl::types::{GLenum, GLint};
 
 use std::os::raw::{c_int, c_void, c_char};
+use std::cell::Cell;
 use std::ffi::CString;
 
 
 pub struct Texture2D {
     m_id: u32,
-    m_slot: u32,
+    m_slot: Cell<u32>,
     m_file_path: CString,
 }
 
@@ -53,18 +54,18 @@ impl Texture2D {
 
         Texture2D {
             m_id: id,
-            m_slot: 0,
+            m_slot: Cell::<u32>::new(0),
             m_file_path: path,
         }
     }
 
 
 
-    pub fn bind_to_slot(&mut self, slot: GLenum) {
-        self.m_slot = gl::TEXTURE0 + slot;
+    pub fn bind_to_slot(&self, slot: GLenum) {
+        self.m_slot.set(gl::TEXTURE0 + slot);
 
         unsafe {
-            gl::ActiveTexture(self.m_slot);
+            gl::ActiveTexture(self.m_slot.get());
             gl::BindTexture(gl::TEXTURE_2D, self.m_id);
         }
 
@@ -74,7 +75,7 @@ impl Texture2D {
 
     pub fn generate_mip_maps(&self) {
         unsafe {
-            gl::ActiveTexture(self.m_slot);
+            gl::ActiveTexture(self.m_slot.get());
             gl::BindTexture(gl::TEXTURE_2D, self.m_id);
             gl::GenerateTextureMipmap(gl::TEXTURE_2D);
         }

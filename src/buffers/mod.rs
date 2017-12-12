@@ -20,7 +20,7 @@ impl ElementBufferObject {
 
 
 
-    pub fn bind(&self) {
+    pub fn bind_buffer(&self) {
         unsafe {
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.m_id);
         }

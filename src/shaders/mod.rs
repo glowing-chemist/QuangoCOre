@@ -1,4 +1,5 @@
 extern crate gl;
+extern crate glm;
 
 use errors::{ShaderCompile, ShaderLink};
 
@@ -8,7 +9,7 @@ use std::io::prelude::*;
 use std::ffi::CString;
 use std::ptr;
 
-use self::gl::types::{GLenum, GLint, GLchar};
+use self::gl::types::{GLenum, GLint, GLchar, GLfloat};
 
 
 
@@ -228,6 +229,18 @@ impl ShaderProgram {
                 value as i32,
             );
         };
+    }
+
+
+
+    pub fn set_uniform_mat4<T : glm::BaseFloat>(&self, name : CString, value : glm::Matrix4<T>) {
+        unsafe{
+            gl::ProgramUniformMatrix4fv(self.m_id,
+                                        gl::GetUniformLocation(self.m_id, name.as_ptr()),
+                                        1,
+                                        gl::FALSE,
+                                        value.as_array().as_ptr() as *const GLfloat);
+        }
     }
 }
 
