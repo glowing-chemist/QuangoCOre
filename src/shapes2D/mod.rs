@@ -114,6 +114,84 @@ fn generate_pipeline_objects(texture_file : CString) -> PipelineObjects {
 
 
 
+fn generate_pipeline_objects_with_geometry(texture_file : CString) -> PipelineObjects {
+    
+    let vertex_buffer_object = VertexBufferObject::new();
+    let element_buffer_object = ElementBufferObject::new();
+
+    let texture = Texture2D::new(texture_file);
+    texture.bind_to_slot(0);
+    texture.generate_mip_maps();
+
+    texture.set_texture_property(gl::TEXTURE_WRAP_S, gl::REPEAT as GLint);
+    texture.set_texture_property(gl::TEXTURE_WRAP_T, gl::REPEAT as GLint);
+    texture.set_texture_property(gl::TEXTURE_MIN_FILTER, gl::LINEAR as GLint);
+    texture.set_texture_property(gl::TEXTURE_MAG_FILTER, gl::LINEAR as GLint);
+
+    let vertex_source = r#"#version 450 core
+                                                        
+                            void main() {
+                                gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
+                            }"#.to_string();
+
+    let vertex_shader = VertexShader::new_from_string(vertex_source, gl::VERTEX_SHADER);
+    match vertex_shader.compile() {
+        ShaderCompile::Success => {}
+        ShaderCompile::Failed(error) => println!("Failed to Compile Fragment Shader: {}", error)
+    }
+
+    let geometry_source = r#"#version 450 core
+                            layout(points) in;
+                            layout(triangle_strip, max_verticies=GL_MAX_GEOMETRY_OUTPUT_VERTICES) out;
+                            
+                            uniform int sides;
+                            uniform mat4 rotation;
+                            uniform mat4 trans;
+
+                            void main() {
+                                vec4 pos = vec4(0.0, 1.0, 0.0, 1.0);
+                                gl_Position = trans* rotation * pos;
+                                EmitVertex();
+
+                                for(int i = 1; i < sides; i++) {
+                                    gl_Position = trans * rotation * pos;
+                                    EmitVertex();
+                                }
+                                EndPrimitives();
+                            }"#.to_string();
+
+    let geometry_shader = GeometryShader::new_from_string(geometry_source, gl::GEOMETRY_SHADER);
+    match vertex_shader.compile() {
+        ShaderCompile::Success => {}
+        ShaderCompile::Failed(error) => println!("Failed to Compile Geometry Shader: {}", error)
+    }
+
+    let fragment_source = r#"#version 450 core
+                            
+                            out vec4 color;
+                            
+                            void main() {
+                                color = vec4(1.0, 0.0, 0.0, 1.0);
+                            }"#.to_string();
+
+    let fragment_shader = FragmentShader::new_from_string(fragment_source, gl::FRAGMENT_SHADER);
+    match fragment_shader.compile() {
+        ShaderCompile::Success => {}
+        ShaderCompile::Failed(error) => println!("Failed to Compile Fragment Shader: {}", error)
+    }
+
+    let shader_program = ShaderProgram::new_with_geometry(vertex_shader, geometry_shader, fragment_shader);
+
+    PipelineObjects{
+        prog : shader_program,
+        tex : texture,
+        ebo : element_buffer_object,
+        vbo : vertex_buffer_object
+    }
+}
+
+
+
 fn scale_and_translate_shape(position_x : f32, position_y : f32, scale_factor : f32) -> glm::Matrix4<f32> {
 
     let mut transformation_matrix = glm::Matrix4::<f32>::new(glm::Vector4::<f32>::new(1.0, 0.0, 0.0, 0.0),
@@ -169,6 +247,25 @@ impl D2Shape {
 
         Triangle{pipeline : pipline_state , num_of_indicies : 3, trans : transformation_matrix}
     }
+
+
+
+    pub fn new_polygon(no_of_sides : i32, position_x : f32, position_y : f32, side_lingth : f32, texture_file : CString) -> D2Shape {
+        
+        let pipeline_state = generate_pipeline_objects_with_geometry(texture_file);
+
+        let transformation_matrix = scale_and_translate_shape(position_x, position_y, side_lingth);
+
+        pipeline_state.ebo.bind_buffer();
+        pipeline_state.vbo.bind_buffer();
+
+        let verticies : [f32; 3] = [0.0, 0.0, 0.0];
+        pipeline_state.vbo.set_vertex_bindings(0, 3, gl::FLOAT, false, (size_of::<f32>() * 3) as i32, 0 as *const _);
+
+        pipeline_state.vbo.copy_vertex_array_data(size_of::<[f32; 3]>() as isize, verticies.as_ptr() as *const _, gl::STATIC_DRAW);
+
+        D2Shape{pipeline : pipeline_state, num_of_indicies : no_of_sides, trans : transformation_matrix}
+    }
 }
 
 
@@ -209,7 +306,24 @@ impl Draw for D2Shape {
         self.pipeline.prog.set_active();
         self.pipeline.prog.set_uniform_mat4(CString::new("trans").unwrap(), self.trans);
 
-        unsafe{ gl::DrawElements(gl::TRIANGLES, self.num_of_indicies, gl::UNSIGNED_INT, 0 as *const _); }
+        if !self.pipeline.prog.has_geometry_shader() {
+            unsafe{ gl::DrawElements(gl::TRIANGLES, self.num_of_indicies, gl::UNSIGNED_INT, 0 as *const _); }
+        } else {
+            self.pipeline.prog.set_uniform_int(CString::new("sides").unwrap(), self.num_of_indicies as u32);
+
+            let mut transformation_matrix = glm::Matrix4::<f32>::new(glm::Vector4::<f32>::new(1.0, 0.0, 0.0, 0.0),
+                                                                     glm::Vector4::<f32>::new(0.0, 1.0, 0.0, 0.0),
+                                                                     glm::Vector4::<f32>::new(0.0, 0.0, 1.0, 0.0),
+                                                                     glm::Vector4::<f32>::new(0.0, 0.0, 0.0, 1.0),
+                                                                    );
+            transformation_matrix = rotate(&transformation_matrix
+                                                    , (360 / self.num_of_indicies) as f32  * (180.0 / glm::ext::consts::pi::<f32, f32>())
+                                                    ,glm::Vector3::<f32>::new(0.0, 0.0, 1.0));
+
+            self.pipeline.prog.set_uniform_mat4(CString::new("rotation").unwrap(), transformation_matrix);
+
+            unsafe { gl::DrawArrays(gl::TRIANGLES, 0, 1); }
+        }
 
         let draw_status = unsafe{ gl::GetError()};
 

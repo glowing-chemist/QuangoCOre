@@ -156,6 +156,15 @@ impl ShaderProgram {
 
 
 
+    pub fn has_geometry_shader(&self) -> bool {
+        match self.geom {
+            None => false,
+            Some(_) => true
+        }
+    }
+
+
+
     pub fn link(&self) -> ShaderLink {
         unsafe {
             gl::LinkProgram(self.m_id);
