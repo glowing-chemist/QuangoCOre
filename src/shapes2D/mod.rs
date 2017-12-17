@@ -150,11 +150,13 @@ fn generate_pipeline_objects_with_geometry(texture_file : CString) -> PipelineOb
 
                             void main() {
                                 vec4 pos = vec4(0.0, 1.0, 0.0, 1.0);
-                                gl_Position = trans* rotation * pos;
+                                pos = trans* rotation * pos;
+                                gl_Position = pos;
                                 EmitVertex();
 
                                 for(int i = 1; i < sides; i++) {
-                                    gl_Position = trans * rotation * pos;
+                                    pos = trans* rotation * pos;
+                                    gl_Position = pos;
                                     EmitVertex();
                                 }
                                 EndPrimitives();
