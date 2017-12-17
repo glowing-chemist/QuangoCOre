@@ -77,7 +77,7 @@ impl Shader {
                     log_buffer.as_mut_ptr() as *mut GLchar,
                 );
 
-                ShaderCompile::Failed(String::from_utf8(log_buffer).unwrap())
+                ShaderCompile::Failed(String::from_raw_parts(log_buffer.as_mut_ptr(), log_length as usize, log_length as usize))
             }
         };
 
@@ -189,7 +189,7 @@ impl ShaderProgram {
                     log_buffer.as_mut_ptr() as *mut GLchar,
                 );
 
-                ShaderLink::Failed(String::from_utf8(log_buffer).unwrap())
+                ShaderLink::Failed(String::from_raw_parts(log_buffer.as_mut_ptr(), log_length as usize, log_length as usize))
             }
         };
 

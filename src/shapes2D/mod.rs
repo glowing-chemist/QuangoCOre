@@ -150,12 +150,12 @@ fn generate_pipeline_objects_with_geometry(texture_file : CString) -> PipelineOb
 
                             void main() {
                                 vec4 pos = vec4(0.0, 1.0, 0.0, 1.0);
-                                pos = trans* rotation * pos;
+                                pos = trans * rotation * pos;
                                 gl_Position = pos;
                                 EmitVertex();
 
                                 for(int i = 1; i < sides; i++) {
-                                    pos = trans* rotation * pos;
+                                    pos = trans * rotation * pos;
                                     gl_Position = pos;
                                     EmitVertex();
                                 }
@@ -170,10 +170,10 @@ fn generate_pipeline_objects_with_geometry(texture_file : CString) -> PipelineOb
 
     let fragment_source = r#"#version 450 core
                             
-                            out vec4 color;
+                            out vec4 FragColor;
                             
                             void main() {
-                                color = vec4(1.0, 0.0, 0.0, 1.0);
+                                FragColor = vec4(1.0, 0.0, 0.0, 1.0);
                             }"#.to_string();
 
     let fragment_shader = FragmentShader::new_from_string(fragment_source, gl::FRAGMENT_SHADER);
@@ -183,6 +183,11 @@ fn generate_pipeline_objects_with_geometry(texture_file : CString) -> PipelineOb
     }
 
     let shader_program = ShaderProgram::new_with_geometry(vertex_shader, geometry_shader, fragment_shader);
+    match shader_program.link() {
+        ShaderLink::Success => {},
+        ShaderLink::Failed(error) => println!("Failed to Link Program: {}", error)
+    }
+
 
     PipelineObjects{
         prog : shader_program,
