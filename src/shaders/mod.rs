@@ -8,6 +8,7 @@ use std::io::prelude::*;
 
 use std::ffi::CString;
 use std::ptr;
+use std::mem;
 
 use self::gl::types::{GLenum, GLint, GLchar, GLfloat};
 
@@ -76,8 +77,9 @@ impl Shader {
                     ptr::null_mut(),
                     log_buffer.as_mut_ptr() as *mut GLchar,
                 );
-
-                ShaderCompile::Failed(String::from_raw_parts(log_buffer.as_mut_ptr(), log_length as usize, log_length as usize))
+                let error_string = String::from_raw_parts(log_buffer.as_mut_ptr(), log_length as usize, log_length as usize);
+                mem::forget(log_buffer);
+                ShaderCompile::Failed(error_string)
             }
         };
 
@@ -188,8 +190,9 @@ impl ShaderProgram {
                     ptr::null_mut(),
                     log_buffer.as_mut_ptr() as *mut GLchar,
                 );
-
-                ShaderLink::Failed(String::from_raw_parts(log_buffer.as_mut_ptr(), log_length as usize, log_length as usize))
+                let error_string = String::from_raw_parts(log_buffer.as_mut_ptr(), log_length as usize, log_length as usize);
+                mem::forget(log_buffer);
+                ShaderLink::Failed(error_string)
             }
         };
 

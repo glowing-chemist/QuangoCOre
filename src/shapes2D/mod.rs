@@ -163,9 +163,9 @@ fn generate_pipeline_objects_with_geometry(texture_file : CString) -> PipelineOb
 
                                     float ang = PI * 2.0 / sides * i;
 
-                                    vec4 offset = vec4(cos(ang) * 0.3, -sin(ang) * 0.4, 0.0, 0.0);
+                                    vec4 offset = vec4(cos(ang) * 0.3, -sin(ang) * 0.3, 0.0, 0.0);
                                     gl_Position = trans * (gl_in[0].gl_Position + offset);
-                                    TexCoord = vec2(MapTexCoord((gl_in[0].gl_Position + offset).x), MapTexCoord((gl_in[0].gl_Position + offset).y));
+                                    TexCoord = vec2(MapTexCoord((gl_in[0].gl_Position + normalize(offset)).x), MapTexCoord((gl_in[0].gl_Position + normalize(offset)).y));
                                     EmitVertex();
 
                                     gl_Position = trans * gl_in[0].gl_Position;
