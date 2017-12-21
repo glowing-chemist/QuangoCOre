@@ -129,6 +129,7 @@ fn generate_pipeline_objects_with_geometry(texture_file : CString) -> PipelineOb
     texture.set_texture_property(gl::TEXTURE_MAG_FILTER, gl::LINEAR as GLint);
 
     let vertex_source = r#"#version 450 core
+
                             layout (location = 0) in vec3 pos;
                                                         
                             void main() {
@@ -163,7 +164,7 @@ fn generate_pipeline_objects_with_geometry(texture_file : CString) -> PipelineOb
 
                                     float ang = PI * 2.0 / sides * i;
 
-                                    vec4 offset = vec4(cos(ang) * 0.3, -sin(ang) * 0.3, 0.0, 0.0);
+                                    vec4 offset = vec4(cos(ang) * 0.4, -sin(ang) * 0.4, 0.0, 0.0);
                                     gl_Position = trans * (gl_in[0].gl_Position + offset);
                                     TexCoord = vec2(MapTexCoord((gl_in[0].gl_Position + normalize(offset)).x), MapTexCoord((gl_in[0].gl_Position + normalize(offset)).y));
                                     EmitVertex();
@@ -233,7 +234,8 @@ fn scale_and_translate_shape(position_x : f32, position_y : f32, scale_factor : 
 
 pub struct D2Shape {
     pipeline : PipelineObjects,
-    num_of_indicies : i32,
+    verticies : Vec<f32>,
+    indicies : Vec<u32>,
     trans : glm::Matrix4<f32>
 }
 
@@ -250,44 +252,48 @@ impl D2Shape {
         
         let transformation_matrix = scale_and_translate_shape(position_x, position_y, side_length);
 
-        let verticies  : [f32; 15]    = [-0.5, -0.5, 0.0, 0.0, 1.0,
-                                        0.5, -0.5, 0.0, 1.0, 1.0,
-                                        0.0,  0.5, 0.0, 0.5,  0.0,];
+        let verticies  : Vec<f32>    = vec![-0.5, -0.5, 0.0, 0.0, 1.0,
+                                            0.5, -0.5, 0.0, 1.0, 1.0,
+                                            0.0,  0.5, 0.0, 0.5,  0.0,];
 
-        let indicies : [u32; 3] = [0, 1, 2];
+        let indicies : Vec<u32> = vec![0, 1, 2];
         
         let pipline_state = generate_pipeline_objects(texture_file);
 
-        pipline_state.vbo.bind_buffer();
-
-        pipline_state.vbo.copy_vertex_array_data(size_of::<[f32; 15]>() as isize, verticies.as_ptr() as *const _, gl::STATIC_DRAW);
-
-        pipline_state.vbo.set_vertex_bindings(0, 3, gl::FLOAT, false, (size_of::<f32>() * 5) as i32, 0 as *const _);
-        pipline_state.vbo.set_vertex_bindings(1, 2, gl::FLOAT, false, (size_of::<f32>() * 5) as i32, (3 * size_of::<f32>()) as *const _);
-
-        pipline_state.ebo.bind_buffer();    
-        pipline_state.ebo.copy_indicies_data(size_of::<[u32; 3]>() as isize, indicies.as_ptr() as *const _, gl::STATIC_DRAW);
-
-        Triangle{pipeline : pipline_state , num_of_indicies : 3, trans : transformation_matrix}
+        Triangle{pipeline : pipline_state , verticies : verticies, indicies : indicies, trans : transformation_matrix}
     }
 
 
 
-    pub fn new_polygon(no_of_sides : i32, position_x : f32, position_y : f32, side_lingth : f32, texture_file : CString) -> D2Shape {
+    pub fn new_square(position_x : f32, position_y :f32, side_length : f32, texture_file : CString) -> Triangle {
+        
+    let transformation_matrix = scale_and_translate_shape(position_x, position_y, side_length);
+
+    let verticies  : Vec<f32>    = vec![-0.5, 0.5, 0.0, 0.0, 1.0,
+                                        -0.5, -0.5, 0.0, 0.0, 0.0,
+                                        0.5, -0.5, 0.0, 1.0, 0.0,
+                                        0.5, 0.5, 0.0, 1.0, 1.0];
+
+    let indicies : Vec<u32> = vec![0, 1, 2, 0, 2, 3];
+        
+    let pipeline_state = generate_pipeline_objects(texture_file);
+
+    Triangle{pipeline : pipeline_state , verticies : verticies, indicies : indicies, trans : transformation_matrix}
+    }
+
+
+
+    pub fn new_polygon(no_of_sides : u32, position_x : f32, position_y : f32, side_lingth : f32, texture_file : CString) -> D2Shape {
         
         let pipeline_state = generate_pipeline_objects_with_geometry(texture_file);
 
         let transformation_matrix = scale_and_translate_shape(position_x, position_y, side_lingth);
 
-        pipeline_state.ebo.bind_buffer();
         pipeline_state.vbo.bind_buffer();
 
-        let verticies : [f32; 3] = [0.0, 0.0, 0.0];
+        let verticies : Vec<f32> = vec![0.0, 0.0, 0.0];
 
-        pipeline_state.vbo.copy_vertex_array_data(size_of::<[f32; 3]>() as isize, verticies.as_ptr() as *const _, gl::STATIC_DRAW);
-        pipeline_state.vbo.set_vertex_bindings(0, 3, gl::FLOAT, false, (size_of::<f32>() * 3) as i32, 0 as *const _);
-
-        D2Shape{pipeline : pipeline_state, num_of_indicies : no_of_sides, trans : transformation_matrix}
+        D2Shape{pipeline : pipeline_state, verticies : verticies, indicies : vec![no_of_sides], trans : transformation_matrix}
     }
 }
 
@@ -329,14 +335,23 @@ impl Draw for D2Shape {
         self.pipeline.prog.set_active();
         self.pipeline.prog.set_uniform_mat4(CString::new("trans").unwrap(), self.trans);
 
+        self.pipeline.vbo.bind_buffer();
+
+        self.pipeline.vbo.copy_vertex_array_data((size_of::<f32>() * self.verticies.len()) as isize, self.verticies.as_ptr() as *const _, gl::DYNAMIC_DRAW);
+
+        self.pipeline.vbo.set_vertex_bindings(0, 3, gl::FLOAT, false, (size_of::<f32>() * 5) as i32, 0 as *const _);
+        self.pipeline.vbo.set_vertex_bindings(1, 2, gl::FLOAT, false, (size_of::<f32>() * 5) as i32, (3 * size_of::<f32>()) as *const _);
+
         if !self.pipeline.prog.has_geometry_shader() {
-            unsafe{ gl::DrawElements(gl::TRIANGLES, self.num_of_indicies, gl::UNSIGNED_INT, 0 as *const _); }
+            self.pipeline.ebo.bind_buffer();    
+            self.pipeline.ebo.copy_indicies_data((size_of::<u32>() * self.indicies.len()) as isize, self.indicies.as_ptr() as *const _, gl::DYNAMIC_DRAW);
+
+            unsafe{ gl::DrawElements(gl::TRIANGLES, self.indicies.len() as GLint, gl::UNSIGNED_INT, 0 as *const _); }
         } else {
-            self.pipeline.prog.set_uniform_int(CString::new("sides").unwrap(), self.num_of_indicies as u32);
+            self.pipeline.prog.set_uniform_int(CString::new("sides").unwrap(), self.indicies[0]);
 
             unsafe { gl::DrawArrays(gl::POINTS, 0, 1); }
         }
-
         let draw_status = unsafe{ gl::GetError()};
 
         match draw_status {
