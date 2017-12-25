@@ -281,6 +281,34 @@ impl D2Shape {
     Triangle{pipeline : pipeline_state , verticies : verticies, indicies : indicies, trans : transformation_matrix}
     }
 
+    pub fn new_square(position_x : f32, position_y : f32, side_length : f32, texture_file : CString) -> Square {
+
+        let transformation_matrix = scale_and_translate_shape(position_x, position_y, side_length);
+
+        let verticies : [f32; 24] = [-0.5, 0.0 -0.5, -0.5, 0.0,
+                                    0.5, -0.5, 0.5, 0.0, 1.0,
+                                    -0.5, 0.5, -0.5,  0.0, 1.0,
+                                    0.5, 0.5, 0.5, 1.0, 0.0,
+                                    -0.5, 1.0, -0.5, 0.5, 1.0];
+
+        let indicies : [u32; 6] = [0, 1, 3,
+                                1, 2, 3];
+
+        let pipline_state = generate_pipeline_objects(texture_file);
+
+        pipline_state.vbo.bind_buffer();
+
+        pipline_state.vbo.copy_vertex_array_data(size_of::<[f32; 24]>() as isize, verticies.as_ptr() as *const _, gl::STATIC_DRAW);
+
+        pipline_state.vbo.set_vertex_bindings(0, 3, gl::FLOAT, false, (size_of::<f32>() * 5) as i32, 0 as *const _);
+        pipline_state.vbo.set_vertex_bindings(1, 2, gl::FLOAT, false, (size_of::<f32>() * 5) as i32, (3 * size_of::<f32>()) as *const _);
+
+        pipline_state.ebo.bind_buffer();    
+        pipline_state.ebo.copy_indicies_data(size_of::<[u32; 3]>() as isize, indicies.as_ptr() as *const _, gl::STATIC_DRAW);
+
+        Square{pipeline : pipline_state , num_of_indicies : 6, trans : transformation_matrix}
+    }
+
 
 
     pub fn new_polygon(no_of_sides : u32, position_x : f32, position_y : f32, side_lingth : f32, texture_file : CString) -> D2Shape {
