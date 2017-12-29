@@ -145,7 +145,7 @@ fn generate_pipeline_objects_with_geometry(texture_file : CString) -> PipelineOb
     let geometry_source = r#"#version 450 core
 
                             layout (points) in;
-                            layout (triangle_strip, max_vertices = 30) out;
+                            layout (triangle_strip, max_vertices = 256) out;
 
                             out vec2 TexCoord;
                             
@@ -232,7 +232,7 @@ fn scale_and_translate_shape(position_x : f32, position_y : f32, scale_factor : 
 
 
 
-pub struct D2Shape {
+pub struct Shape {
     pipeline : PipelineObjects,
     verticies : Vec<f32>,
     indicies : Vec<u32>,
@@ -242,12 +242,12 @@ pub struct D2Shape {
 
 
 // type aliases for 2D primitives
-pub type Triangle = D2Shape;
-pub type Square   = D2Shape;
+pub type Triangle = Shape;
+pub type Square   = Shape;
 
 
 
-impl D2Shape {
+impl Shape {
     pub fn new_triangle(position_x : f32, position_y :f32, side_length : f32, texture_file : CString) -> Triangle {
         
         let transformation_matrix = scale_and_translate_shape(position_x, position_y, side_length);
@@ -283,7 +283,7 @@ impl D2Shape {
 
 
 
-    pub fn new_polygon(no_of_sides : u32, position_x : f32, position_y : f32, side_lingth : f32, texture_file : CString) -> D2Shape {
+    pub fn new_polygon(no_of_sides : u32, position_x : f32, position_y : f32, side_lingth : f32, texture_file : CString) -> Shape {
         
         let pipeline_state = generate_pipeline_objects_with_geometry(texture_file);
 
@@ -293,13 +293,37 @@ impl D2Shape {
 
         let verticies : Vec<f32> = vec![0.0, 0.0, 0.0];
 
-        D2Shape{pipeline : pipeline_state, verticies : verticies, indicies : vec![no_of_sides], trans : transformation_matrix}
+        Shape{pipeline : pipeline_state, verticies : verticies, indicies : vec![no_of_sides], trans : transformation_matrix}
+    }
+
+
+
+    pub fn new_custom_shape2d(verts : Vec<f32>, position_x : f32, position_y : f32, scale : f32, texture_file : CString) -> Shape {
+        
+        let pipelinestate = generate_pipeline_objects(texture_file);
+        let transformation_matrix = scale_and_translate_shape(position_x, position_y, scale);
+
+        // at some point will dedupe the verticies and generate the indicies from that
+        // but rust makes it redicuously dificult to work with floats in collections
+        // so won't be doing it any time soon.
+        let i = 0..verts.len();
+        let mut indi = Vec::<u32>::new();
+        for indicie in i {
+            indi.push(indicie as u32);
+        }
+
+        Shape{
+            pipeline : pipelinestate,
+            verticies : verts,
+            indicies : indi,
+            trans : transformation_matrix
+        }
     }
 }
 
 
 
-impl Transformable for D2Shape {
+impl Transformable for Shape {
     fn translate(&mut self, trans_x : f32, trans_y : f32) {
         self.trans = translate(&self.trans, glm::Vector3::<f32>::new(trans_x, trans_y, 0.0));
     }
@@ -323,7 +347,7 @@ impl Transformable for D2Shape {
 
 
 
-impl Draw for D2Shape {
+impl Draw for Shape {
 
     fn draw(&self) -> DrawStatus{
         

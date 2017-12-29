@@ -4,6 +4,7 @@ pub mod errors;
 pub mod buffers;
 pub mod textures;
 pub mod shapes2D;
+pub mod camera;
 
 
 #[cfg(test)]
