@@ -3,7 +3,7 @@ pub mod shaders;
 pub mod errors;
 pub mod buffers;
 pub mod textures;
-pub mod shapes2D;
+pub mod shapes;
 pub mod camera;
 
 
