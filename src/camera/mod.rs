@@ -1,6 +1,6 @@
 extern crate glm;
 
-use shapes2D::Axis;
+use shapes::Axis;
 
 pub struct Camera {
     up_vector : glm::Vector3<f32>,
