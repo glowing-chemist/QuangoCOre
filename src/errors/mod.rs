@@ -10,7 +10,7 @@ pub enum ShaderLink {
     Success,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum DrawStatus {
     Failed(String),
     Success

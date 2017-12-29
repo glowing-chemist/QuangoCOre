@@ -14,7 +14,7 @@ use errors::*;
 use std::ffi::CString;
 
 
-
+#[derive(Copy, Clone, Debug)]
 pub enum Axis {
     XAxis,
     YAxis,
@@ -68,9 +68,10 @@ fn generate_pipeline_objects(texture_file : CString) -> PipelineObjects {
                         out vec2 TexCoord;
 
                         uniform mat4 trans;
+                        uniform mat4 camera;
 
                         void main() { 
-                            gl_Position = trans * vec4(aPos, 1.0);
+                            gl_Position = camera * trans * vec4(aPos, 1.0);
                             TexCoord = aCoord;
                         }"#.to_string();
 
@@ -151,6 +152,7 @@ fn generate_pipeline_objects_with_geometry(texture_file : CString) -> PipelineOb
                             
                             uniform int sides;
                             uniform mat4 trans;
+                            uniform mat4 camera;
 
                             const float PI = 3.1415926;
 
@@ -165,11 +167,11 @@ fn generate_pipeline_objects_with_geometry(texture_file : CString) -> PipelineOb
                                     float ang = PI * 2.0 / sides * i;
 
                                     vec4 offset = vec4(cos(ang) * 0.4, -sin(ang) * 0.4, 0.0, 0.0);
-                                    gl_Position = trans * (gl_in[0].gl_Position + offset);
+                                    gl_Position = camera * trans * (gl_in[0].gl_Position + offset);
                                     TexCoord = vec2(MapTexCoord((gl_in[0].gl_Position + normalize(offset)).x), MapTexCoord((gl_in[0].gl_Position + normalize(offset)).y));
                                     EmitVertex();
 
-                                    gl_Position = trans * gl_in[0].gl_Position;
+                                    gl_Position = camera * trans * gl_in[0].gl_Position;
                                     TexCoord = vec2(MapTexCoord(gl_in[0].gl_Position.x), MapTexCoord(gl_in[0].gl_Position.y));
                                     EmitVertex();
                                 }
