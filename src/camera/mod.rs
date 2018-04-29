@@ -1,6 +1,10 @@
 extern crate glm;
 
-use shapes::Axis;
+pub enum Axis {
+    XAxis,
+    YAxis,
+    ZAxis,
+}
 
 pub struct Camera {
     up_vector : glm::Vector3<f32>,

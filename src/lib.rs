@@ -3,9 +3,7 @@ pub mod shaders;
 pub mod errors;
 pub mod buffers;
 pub mod textures;
-pub mod shapes;
 pub mod camera;
-pub mod sceneGraph;
 
 
 #[cfg(test)]
