@@ -19,7 +19,7 @@ pub struct Texture2D {
 
 
 impl Texture2D {
-    pub fn new(path: CString) -> Texture2D {
+    pub fn new_from_file(path: CString) -> Texture2D {
         let mut height = 0;
         let mut width = 0;
         let mut channels = 0;
@@ -98,4 +98,10 @@ impl Drop for Texture2D {
             gl::DeleteTextures(1, &self.m_id);
         }
     }
+}
+
+
+
+pub struct Texture3D {
+    
 }

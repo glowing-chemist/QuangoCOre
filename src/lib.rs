@@ -4,7 +4,7 @@ pub mod errors;
 pub mod buffers;
 pub mod textures;
 pub mod camera;
-
+pub mod GlDevice;
 
 #[cfg(test)]
 mod tests {
